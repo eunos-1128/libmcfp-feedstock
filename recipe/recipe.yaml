@@ -1,13 +1,12 @@
 context:
-  name: libmcfp
   version: "2.0.0"
 
 package:
-  name: ${{ name }}
+  name: libmcfp
   version: ${{ version }}
 
 source:
-  url: https://github.com/mhekkel/${{ name }}/archive/refs/tags/v${{ version }}.tar.gz
+  url: https://github.com/mhekkel/libmcfp/archive/refs/tags/v${{ version }}.tar.gz
   sha256: 696d1fc1b8280ccc51af311458596220a20865b5fd1402a0f719120b5b4fd2a2
 
 build:
