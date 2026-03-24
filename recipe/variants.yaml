@@ -1,4 +1,4 @@
 c_stdlib_version:
   - if: osx
     then:
-      - 13.4  # std::to_chars (floating-point overloads) requires macOS 13.4 or later
+      - 13.3  # std::to_chars (floating-point overloads) requires macOS 13.4 or later
