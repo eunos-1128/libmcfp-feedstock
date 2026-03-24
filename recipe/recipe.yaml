@@ -57,7 +57,10 @@ tests:
         - mcfp/charconv.hpp
         - mcfp/text.hpp
       lib:
-        - mcfp
+        - if: unix
+          then: mcfp
+        - if: win
+          then: mcfp.lib
 
 about:
   homepage: https://mhekkel.github.io/libmcfp
