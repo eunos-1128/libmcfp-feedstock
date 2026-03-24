@@ -1,4 +1,3 @@
-if: osx
-then:
-  - c_stdlib_version:
-      13.4
+- if: osx
+  then:
+    - c_stdlib_version: 13.4
