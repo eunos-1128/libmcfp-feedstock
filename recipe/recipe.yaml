@@ -15,6 +15,7 @@ build:
     - if: unix
       then: |
         set -exo pipefail
+        export CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY"
         cmake -S . -B build ${CMAKE_ARGS} -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=ON
         cmake --build build --parallel ${CPU_COUNT}
         ctest -V --test-dir build
