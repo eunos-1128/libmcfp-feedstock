@@ -50,7 +50,7 @@ requirements:
     - catch2
     - fast_float
   run_exports:
-    - pin_subpackage("libmcfp", upper_bound="x")
+    - ${{ pin_subpackage("libmcfp", upper_bound="x") }}
   ignore_run_exports:
     from_package:
       - catch2
