@@ -1,0 +1,229 @@
+diff --git a/include/mcfp/error.hpp b/include/mcfp/error.hpp
+index bc79d98..70a2c0d 100644
+--- a/include/mcfp/error.hpp
++++ b/include/mcfp/error.hpp
+@@ -58,75 +58,12 @@ enum class config_error
+ 	wrong_type_cast_flag,            /**< The value assigned in a config file to a flag option was not 'true', 'false' or an integral numerical value */
+ 	config_file_not_found            /**< The specified config file was not found */
+ };
+-/**
+- * @brief The implementation for config_category error messages
+- *
+- */
+-class config_category_impl : public std::error_category
+-{
+-  public:
+-	/**
+-	 * @brief User friendly name
+-	 *
+-	 * @return const char*
+-	 */
+-
+-	[[nodiscard]] const char *name() const noexcept override
+-	{
+-		return "configuration";
+-	}
+-
+-	/**
+-	 * @brief Provide the error message as a string for the error code @a ev
+-	 *
+-	 * @param ev The error code
+-	 * @return std::string
+-	 */
+-
+-	[[nodiscard]] std::string message(int ev) const override
+-	{
+-		switch (static_cast<config_error>(ev))
+-		{
+-			case config_error::unknown_option:
+-				return "unknown option";
+-			case config_error::option_does_not_accept_argument:
+-				return "option does not accept argument";
+-			case config_error::missing_argument_for_option:
+-				return "missing argument for option";
+-			case config_error::option_not_specified:
+-				return "option was not specified";
+-			case config_error::invalid_config_file:
+-				return "config file contains a syntax error";
+-			case config_error::wrong_type_cast:
+-				return "the implementation contains a type cast error";
+-			case config_error::config_file_not_found:
+-				return "the specified config file was not found";
+-			case config_error::wrong_type_cast_flag:
+-				return "the value assigned in a config file to a flag option was not 'true', 'false' or an integral numerical value";
+-		}
+-	}
+-
+-	/**
+-	 * @brief Return whether two error codes are equivalent, always false in this case
+-	 *
+-	 */
+-
+-	[[nodiscard]] bool equivalent(const std::error_code & /*code*/, int /*condition*/) const noexcept override
+-	{
+-		return false;
+-	}
+-};
+-
+ /**
+  * @brief Return the implementation for the config_category
+  *
+  * @return std::error_category&
+  */
+-inline std::error_category &config_category()
+-{
+-	static config_category_impl instance;
+-	return instance;
+-}
++std::error_category &config_category();
+ 
+ /**
+  * @brief Create an std::error_code for our config_error enum
+@@ -158,7 +95,7 @@ namespace std
+ {
+ 
+ template <> // NOLINT(bugprone-std-namespace-modification,cert-dcl58-cpp)
+-struct is_error_condition_enum<mcfp::config_error>
++struct is_error_code_enum<mcfp::config_error>
+ 	: public true_type
+ {
+ };
+diff --git a/include/mcfp/mcfp.hpp b/include/mcfp/mcfp.hpp
+index c2fe324..66c98e4 100644
+--- a/include/mcfp/mcfp.hpp
++++ b/include/mcfp/mcfp.hpp
+@@ -182,9 +182,16 @@ class config
+ 	 */
+ 	[[nodiscard]] std::string get_last_option() const
+ 	{
+-		return s_last_option;
++		return get_last_option_ref();
+ 	}
+ 
++	/**
++	 * @brief Get a reference to the thread-local last option storage
++	 *
++	 * @return std::string& reference to last option
++	 */
++	static std::string &get_last_option_ref();
++
+ 	/**
+ 	 * @brief Simply return true if the option with \a name has a value assigned
+ 	 *
+@@ -248,7 +255,7 @@ class config
+ 		using return_type = std::remove_cv_t<T>;
+ 
+ 		// store name for inspection later on
+-		s_last_option = name;
++		get_last_option_ref() = name;
+ 
+ 		return_type result{};
+ 		auto opt = get_option(name);
+@@ -541,8 +548,6 @@ class config
+ 	std::vector<std::string> m_operands;
+ 	std::vector<std::unique_ptr<section>> m_sections;
+ 
+-	static thread_local std::string s_last_option;
+-
+ 	/// @endcond
+ };
+ 
+diff --git a/src/mcfp.cpp b/src/mcfp.cpp
+index 937e2cd..4004158 100644
+--- a/src/mcfp.cpp
++++ b/src/mcfp.cpp
+@@ -46,6 +46,52 @@
+ namespace mcfp
+ {
+ 
++// --------------------------------------------------------------------
++
++class config_category_impl : public std::error_category
++{
++  public:
++	[[nodiscard]] const char *name() const noexcept override
++	{
++		return "configuration";
++	}
++
++	[[nodiscard]] std::string message(int ev) const override
++	{
++		switch (static_cast<config_error>(ev))
++		{
++			case config_error::unknown_option:
++				return "unknown option";
++			case config_error::option_does_not_accept_argument:
++				return "option does not accept argument";
++			case config_error::missing_argument_for_option:
++				return "missing argument for option";
++			case config_error::option_not_specified:
++				return "option was not specified";
++			case config_error::invalid_config_file:
++				return "config file contains a syntax error";
++			case config_error::wrong_type_cast:
++				return "the implementation contains a type cast error";
++			case config_error::config_file_not_found:
++				return "the specified config file was not found";
++			case config_error::wrong_type_cast_flag:
++				return "the value assigned in a config file to a flag option was not 'true', 'false' or an integral numerical value";
++		}
++		return "unknown configuration error";
++	}
++
++	[[nodiscard]] bool equivalent(const std::error_code & /*code*/, int /*condition*/) const noexcept override
++	{
++		return false;
++	}
++};
++
++std::error_category &config_category()
++{
++	static config_category_impl instance;
++	return instance;
++}
++
+ #if defined(_WIN32)
+ /// @brief Get the width in columns of the current terminal
+ /// @return number of columns of the terminal
+@@ -85,7 +131,12 @@ inline uint32_t get_terminal_width()
+ 
+ // --------------------------------------------------------------------
+ 
+-thread_local std::string config::s_last_option;
++thread_local std::string s_last_option_tls;
++
++std::string &config::get_last_option_ref()
++{
++	return s_last_option_tls;
++}
+ 
+ void config::parse(int argc, const char *const argv[])
+ {
+@@ -162,7 +213,7 @@ void config::parse(int argc, const char *const argv[], std::error_code &ec)
+ 			}
+ 
+ 			// store name for inspection later on
+-			s_last_option = s_arg;
++			get_last_option_ref() = std::string{s_arg};
+ 
+ 			opt = get_option(s_arg);
+ 			if (opt == nullptr)
+@@ -193,7 +244,7 @@ void config::parse(int argc, const char *const argv[], std::error_code &ec)
+ 			while (*arg != 0 and not ec)
+ 			{
+ 				// store name for inspection later on
+-				s_last_option = *arg;
++				get_last_option_ref() = std::string{*arg};
+ 				opt = get_option(*arg++);
+ 
+ 				if (opt == nullptr)
+@@ -360,8 +411,7 @@ void config::parse_config_file(std::istream &is, std::error_code &ec)
+ 				else if (is_eoln(ch))
+ 				{
+ 					// store name for inspection later on
+-					s_last_option = name;
+-
++						get_last_option_ref() = name;
+ 					auto opt = get_option(section, name);
+ 
+ 					if (opt == nullptr)

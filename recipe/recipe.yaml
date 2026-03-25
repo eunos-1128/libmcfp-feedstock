@@ -1,5 +1,5 @@
 context:
-  version: "2.0.0"
+  version: "2.0.1"
 
 package:
   name: libmcfp
@@ -7,25 +7,37 @@ package:
 
 source:
   url: https://github.com/mhekkel/libmcfp/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 696d1fc1b8280ccc51af311458596220a20865b5fd1402a0f719120b5b4fd2a2
+  sha256: bf09e0ac20767e0f37abfe5723545c8890b9adffe0fd80b1a818edc70b490ac2
+  patches:
+    - fix-error-category-singleton_refactor-last-option-storage.patch
 
 build:
   number: 0
   script:
     - if: unix
-      then:
-        - set -exo pipefail
-        - cmake -S . -B build ${CMAKE_ARGS} -DBUILD_TESTING=OFF
-        - cmake --build build --config Release --parallel ${CPU_COUNT}
-        - cmake --install build
-      else:
-        - echo on
-        - cmake -S . -B build %CMAKE_ARGS% -DBUILD_TESTING=OFF
-        - if errorlevel 1 exit 1
-        - cmake --build build --config Release --parallel %CPU_COUNT%
-        - if errorlevel 1 exit 1
-        - cmake --install build
-        - if errorlevel 1 exit 1
+      then: |
+        set -exo pipefail
+        export CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY"
+        cmake -S . -B build \
+          ${CMAKE_ARGS} \
+          -DBUILD_SHARED_LIBS=ON \
+          -DBUILD_TESTING=ON
+        cmake --build build --parallel ${CPU_COUNT}
+        ctest -V --test-dir build
+        cmake --install build
+    - if: win
+      then: |
+        @echo on
+        cmake -S . -B build -G "NMake Makefiles JOM" %CMAKE_ARGS% -DBUILD_SHARED_LIBS=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON -DBUILD_TESTING=ON
+        if errorlevel 1 exit 1
+        cmake --build build --parallel %CPU_COUNT%
+        if errorlevel 1 exit 1
+        set "PATH=%SRC_DIR%\build;%PATH%"
+        if errorlevel 1 exit 1
+        ctest -V --test-dir build
+        if errorlevel 1 exit 1
+        cmake --install build
+        if errorlevel 1 exit 1
 
 requirements:
   build:
@@ -34,18 +46,35 @@ requirements:
     - cmake
     - if: unix
       then: make
+    - if: win
+      then: jom
+  host:
+    - catch2
+    - fast_float
+  run_exports:
+    - ${{ pin_subpackage("libmcfp", upper_bound="x") }}
+  ignore_run_exports:
+    from_package:
+      - catch2
 
 tests:
   - package_contents:
       include:
         - mcfp/mcfp.hpp
+        - mcfp/options.hpp
+        - mcfp/sections.hpp
+        - mcfp/error.hpp
+        - mcfp/charconv.hpp
+        - mcfp/text.hpp
+      lib:
+        - mcfp
 
 about:
   homepage: https://mhekkel.github.io/libmcfp
   repository: https://github.com/mhekkel/libmcfp
   documentation: https://mhekkel.github.io/libmcfp/api/library_root.html
-  license: BSD-2-Clause
-  license_file: LICENSE
+  license: BSD-2-Clause AND MIT AND LicenseRef-CC0-1.0
+  license_file: LICENSES/
   summary: "A library for parsing command line arguments and configuration files and making them available throughout a program."
   description: |
     This library attempts to implement the POSIX.1-2017 standard for parsing arguments passed to an application.

@@ -5,7 +5,7 @@ Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/libmcfp-feedsto
 
 Home: https://mhekkel.github.io/libmcfp
 
-Package license: BSD-2-Clause
+Package license: BSD-2-Clause AND MIT AND LicenseRef-CC0-1.0
 
 Summary: A library for parsing command line arguments and configuration files and making them available throughout a program.
 
