@@ -32,6 +32,8 @@ build:
         if errorlevel 1 exit 1
         cmake --build build --parallel %CPU_COUNT%
         if errorlevel 1 exit 1
+        set "PATH=%SRC_DIR%\build;%PATH%"
+        if errorlevel 1 exit 1
         ctest -V --test-dir build
         if errorlevel 1 exit 1
         cmake --install build
@@ -65,10 +67,7 @@ tests:
         - mcfp/charconv.hpp
         - mcfp/text.hpp
       lib:
-        - if: unix
-          then: mcfp
-        - if: win
-          then: mcfp.lib
+        - mcfp
 
 about:
   homepage: https://mhekkel.github.io/libmcfp
