@@ -9,7 +9,7 @@ source:
   url: https://github.com/mhekkel/libmcfp/archive/refs/tags/v${{ version }}.tar.gz
   sha256: bf09e0ac20767e0f37abfe5723545c8890b9adffe0fd80b1a818edc70b490ac2
   patches:
-    - fix-shared-lib-error-category.patch
+    - fix-error-category-singleton.patch
 
 build:
   number: 0
