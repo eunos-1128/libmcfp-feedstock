@@ -9,7 +9,7 @@ source:
   url: https://github.com/mhekkel/libmcfp/archive/refs/tags/v${{ version }}.tar.gz
   sha256: bf09e0ac20767e0f37abfe5723545c8890b9adffe0fd80b1a818edc70b490ac2
   patches:
-    - fix-error-category-singleton.patch
+    - fix-error-category-singleton_refactor-last-option-storage.patch
 
 build:
   number: 0
