@@ -28,7 +28,7 @@ build:
     - if: win
       then: |
         @echo on
-        cmake -S . -B build -G "NMake Makefiles JOM" %CMAKE_ARGS% -DBUILD_SHARED_LIBS=ON -DWINDOWS_EXPORT_ALL_SYMBOLS=ON -DBUILD_TESTING=ON
+        cmake -S . -B build -G "NMake Makefiles JOM" %CMAKE_ARGS% -DBUILD_SHARED_LIBS=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON -DBUILD_TESTING=ON
         if errorlevel 1 exit 1
         cmake --build build --parallel %CPU_COUNT%
         if errorlevel 1 exit 1
