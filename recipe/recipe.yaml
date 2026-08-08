@@ -1,5 +1,5 @@
 context:
-  version: "2.0.2"
+  version: "2.0.3"
 
 package:
   name: libmcfp
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://forge.hekkelman.net/maarten/mcfp/archive/v${{ version }}.tar.gz
-  sha256: b0cdaffce2f5b2f5a2de7ab5476c4ea294d8d8d13e8dcf0976c486370d86a0cf
+  sha256: 67f382b68c17256585243de42ec666ea0cba5af10d7f9edf1d364fa6f980de84
   patches:
     - fix-config-category-last-option.patch
 
