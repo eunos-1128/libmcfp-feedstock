@@ -1,5 +1,5 @@
 context:
-  version: "2.0.3"
+  version: "2.0.4"
 
 package:
   name: libmcfp
@@ -7,8 +7,9 @@ package:
 
 source:
   url: https://forge.hekkelman.net/maarten/mcfp/archive/v${{ version }}.tar.gz
-  sha256: 67f382b68c17256585243de42ec666ea0cba5af10d7f9edf1d364fa6f980de84
+  sha256: b1a714511b77e0c211ff99276e8658618997739a719cbd67e34df3067c68c74a
   patches:
+    - ${{ "fix-config-name-char.patch" if win }}
     - fix-config-category-last-option.patch
 
 build:
@@ -18,36 +19,37 @@ build:
       then: |
         set -exo pipefail
         export CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY"
-        cmake -S . -B build \
+        cmake -S . -B build -G Ninja \
           ${CMAKE_ARGS} \
           -DBUILD_SHARED_LIBS=ON \
           -DBUILD_TESTING=ON
         cmake --build build --parallel ${CPU_COUNT}
         ctest -V --test-dir build
-        cmake --install build
+        cmake --install build --parallel ${CPU_COUNT}
     - if: win
       then: |
         @echo on
-        cmake -S . -B build -G "NMake Makefiles JOM" %CMAKE_ARGS% -DBUILD_SHARED_LIBS=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON -DBUILD_TESTING=ON
-        if errorlevel 1 exit 1
-        cmake --build build --parallel %CPU_COUNT%
-        if errorlevel 1 exit 1
         set "PATH=%SRC_DIR%\build;%PATH%"
-        if errorlevel 1 exit 1
-        ctest -V --test-dir build
-        if errorlevel 1 exit 1
-        cmake --install build
-        if errorlevel 1 exit 1
+        @REM MSVC constexpr workaround
+        sed -i -E "s/return .*isalnum.*;/return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_' || c == '-';/" "include/mcfp/mcfp.hpp"
+        cmake -S . -B build -G Ninja ^
+          %CMAKE_ARGS% ^
+          -DBUILD_SHARED_LIBS=ON ^
+          -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON ^
+          -DBUILD_TESTING=ON ^
+          || exit /b 1
+        cmake --build build --parallel %CPU_COUNT% || exit /b 1
+        ctest -V --test-dir build || exit /b 1
+        cmake --install build --parallel %CPU_COUNT% || exit /b 1
 
 requirements:
   build:
     - ${{ compiler("cxx") }}
     - ${{ stdlib("c") }}
+    - ${{ "clang-tools" if osx }}
+    - ${{ "m2-sed" if win }}
     - cmake
-    - if: unix
-      then: make
-    - if: win
-      then: jom
+    - ninja
   host:
     - catch2
     - fast_float

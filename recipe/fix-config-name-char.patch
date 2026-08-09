@@ -1,0 +1,16 @@
+diff --git a/include/mcfp/mcfp.hpp b/include/mcfp/mcfp.hpp
+index cc09a6e..06a204d 100644
+--- a/include/mcfp/mcfp.hpp
++++ b/include/mcfp/mcfp.hpp
+@@ -378,7 +378,10 @@ MCFP_EXPORT class config
+   private:
+ 	static constexpr bool is_name_char(int ch)
+ 	{
+-		return std::isalnum(ch) or ch == '_' or ch == '-';
++		return (ch >= '0' && ch <= '9') ||
++			   (ch >= 'A' && ch <= 'Z') ||
++			   (ch >= 'a' && ch <= 'z') ||
++			   ch == '_' || ch == '-';
+ 	}
+ 
+ 	static constexpr bool is_eoln(int ch)
