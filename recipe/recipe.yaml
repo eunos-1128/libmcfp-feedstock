@@ -10,10 +10,10 @@ source:
   sha256: b1a714511b77e0c211ff99276e8658618997739a719cbd67e34df3067c68c74a
   patches:
     - ${{ "fix-config-name-char.patch" if win }}
-    # - fix-config-category-last-option.patch
+    - fix-config-last-option.patch
 
 build:
-  number: 0
+  number: 1
   script:
     - if: unix
       then: |
