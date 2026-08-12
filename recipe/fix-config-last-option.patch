@@ -4,12 +4,12 @@ index 27f163c..613c35a 100644
 +++ b/include/mcfp/mcfp.hpp
 @@ -528,7 +528,7 @@ MCFP_EXPORT class config
  
- 	       std::vector<std::string> m_operands;
- 	       std::vector<std::unique_ptr<section>> m_sections;
--	       static thread_local std::string s_last_option;
-+	       inline static thread_local std::string s_last_option;
+ 	std::vector<std::string> m_operands;
+ 	std::vector<std::unique_ptr<section>> m_sections;
+-	static thread_local std::string s_last_option;
++	inline static thread_local std::string s_last_option;
  
- 	       /// @endcond
+ 	/// @endcond
  };
 diff --git a/src/mcfp.cpp b/src/mcfp.cpp
 index 5e24137..459eac7 100644
@@ -18,7 +18,7 @@ index 5e24137..459eac7 100644
 @@ -109,8 +109,6 @@ std::error_category &config_category()
  	return instance;
  }
--
+ 
 -thread_local std::string config::s_last_option;
 -
  void config::parse(int argc, const char *const argv[])
