@@ -1,23 +1,23 @@
 diff --git a/include/mcfp/mcfp.hpp b/include/mcfp/mcfp.hpp
-index 27f163c..613c35a 100644
+index cc09a6e..b7c9a33 100644
 --- a/include/mcfp/mcfp.hpp
 +++ b/include/mcfp/mcfp.hpp
-@@ -528,7 +528,7 @@ MCFP_EXPORT class config
- 
+@@ -522,7 +522,7 @@ MCFP_EXPORT class config
  	std::vector<std::string> m_operands;
  	std::vector<std::unique_ptr<section>> m_sections;
+ 
 -	static thread_local std::string s_last_option;
 +	inline static thread_local std::string s_last_option;
  
  	/// @endcond
  };
 diff --git a/src/mcfp.cpp b/src/mcfp.cpp
-index 5e24137..459eac7 100644
+index 594795b..a0b4078 100644
 --- a/src/mcfp.cpp
 +++ b/src/mcfp.cpp
-@@ -109,8 +109,6 @@ std::error_category &config_category()
- 	return instance;
- }
+@@ -65,8 +65,6 @@ MCFP_INLINE std::uint32_t get_terminal_width()
+ 
+ // --------------------------------------------------------------------
  
 -thread_local std::string config::s_last_option;
 -
