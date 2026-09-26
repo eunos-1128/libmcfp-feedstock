@@ -10,7 +10,7 @@ source:
   sha256: cf37ff629c03dcdab0132a89b285bb254fc0157b27a04f5fa73180d58a2874e7
 
 build:
-  number: 0
+  number: 1
   script:
     - if: unix
       then: |
@@ -55,7 +55,7 @@ requirements:
     - catch2
     - fast_float
   run_exports:
-    - ${{ pin_subpackage("libmcfp", upper_bound="x") }}
+    - ${{ pin_subpackage("libmcfp", upper_bound="x.x.x") }}
   ignore_run_exports:
     from_package:
       - catch2
